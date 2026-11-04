@@ -86,8 +86,9 @@ Die Einträge der alten Version liegen nur im Browser-Speicher der Adresse `127.
 | `npm test` | Validierung der Einträge (Unit-Tests) |
 | `npm run test:rls` | Migration und **alle Zugriffsregeln** auf einem Wegwerf-Postgres (Fremde sehen nichts, Rollen, Einladungen, Konto-Löschung). Braucht lokal installiertes PostgreSQL: `PGPORT=… PGUSER=postgres npm run test:rls` |
 | `node smoke.mjs` | Lokaler Modus im Browser (Vorschau auf Port 4173, `npx playwright install chromium`) |
+| `LIVE_PASS=… node tests/live-smoke.mjs` | Zwei Nutzer gegen ein **echtes** Supabase-Projekt (Atlas, Foto, Einladung, Rechte, Kommentare, privater Bucket); danach `tests/live-cleanup.mjs`. Braucht `.env.local` und zwei bestätigte Test-Konten |
 | `node tests/cloud-smoke.mjs` | Cloud-Oberfläche gegen einen **simulierten** Supabase-Server (Anleitung im Dateikopf) |
 
 `BROWSER=webkit node smoke.mjs` führt den lokalen Test mit WebKit (Safari-Engine) aus.
 
-Offene Punkte: Die Cloud-Anbindung wurde bisher nur gegen den Simulator und gegen ein lokales Postgres geprüft, noch nicht gegen ein echtes Supabase-Projekt; das iOS-Projekt wurde unter Windows angelegt und noch nicht in Xcode kompiliert.
+Die Cloud-Anbindung wurde zusätzlich live gegen ein echtes Supabase-Projekt mit zwei Konten geprüft. Offen: Das iOS-Projekt wurde unter Windows angelegt und noch nicht in Xcode kompiliert.

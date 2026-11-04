@@ -4,14 +4,24 @@ import { feature } from 'topojson-client';
 import { geoEquirectangular, geoPath } from 'd3-geo';
 import world from 'world-atlas/countries-110m.json';
 
-const BERLIN = { lat: 52.52, lon: 13.405 };
-const PAPHOS = { lat: 34.775, lon: 32.425 };
+export const DEFAULT_ROUTE = { from: { lat: 52.52, lon: 13.405 }, to: { lat: 34.775, lon: 32.425 } };
+let START = DEFAULT_ROUTE.from, END = DEFAULT_ROUTE.to;
 const radius = 2.05;
 
+// Angular distance in radians (haversine). Used to scale the flight arc for short and long routes.
+export function routeDistance(a, b) {
+  const rad = Math.PI / 180, dLat = (b.lat - a.lat) * rad, dLon = (b.lon - a.lon) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin(dLon / 2) ** 2;
+  return 2 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
 export function routePoint(t, altitude = 0) {
-  const lat = (BERLIN.lat + (PAPHOS.lat - BERLIN.lat) * t) * Math.PI / 180;
-  const lon = (BERLIN.lon + (PAPHOS.lon - BERLIN.lon) * t) * Math.PI / 180;
-  const r = radius + altitude + 0.20 * Math.sin(Math.PI * t);
+  // Take the short way around the globe, also across the antimeridian.
+  const dLon = ((END.lon - START.lon + 540) % 360) - 180;
+  const lat = (START.lat + (END.lat - START.lat) * t) * Math.PI / 180;
+  const lon = (START.lon + dLon * t) * Math.PI / 180;
+  const arc = 0.04 + 0.16 * Math.min(1, routeDistance(START, END) / 0.55);
+  const r = radius + altitude + arc * Math.sin(Math.PI * t);
   return new THREE.Vector3(-r * Math.cos(lat) * Math.sin(lon), r * Math.sin(lat), -r * Math.cos(lat) * Math.cos(lon));
 }
 
@@ -56,14 +66,14 @@ function makeAirplane() {
 export function createGlobe(container, labelLayer) {
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); }
-  catch { container.classList.add('no-webgl'); return { setEntries() {}, focus() {}, destroy() {} }; }
+  catch { container.classList.add('no-webgl'); return { setEntries() {}, setRoute(route) { START = route.from; END = route.to; }, focus() {}, destroy() {} }; }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.setClearColor('#0d293b');
   container.prepend(renderer.domElement);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(38, 1, .1, 40);
-  const aim = routePoint(.45).normalize();
+  let aim = routePoint(.45).normalize();
   camera.position.copy(aim.clone().multiplyScalar(7.65)); camera.lookAt(0, 0, 0);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enablePan = false; controls.enableDamping = true; controls.dampingFactor = .055;
@@ -75,16 +85,21 @@ export function createGlobe(container, labelLayer) {
   scene.add(sphere);
   scene.add(new THREE.Mesh(new THREE.SphereGeometry(radius + .038, 64, 48), new THREE.MeshBasicMaterial({ color: '#74d1ca', transparent: true, opacity: .07, side: THREE.BackSide })));
   const halo = new THREE.Mesh(new THREE.SphereGeometry(radius + .22, 64, 48), new THREE.MeshBasicMaterial({ color: '#83e4d7', transparent: true, opacity: .065, side: THREE.BackSide })); scene.add(halo);
-  const points = Array.from({ length: 100 }, (_, i) => routePoint(i / 99, .012));
-  const route = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#ffd7a0', transparent: true, opacity: .97 })); scene.add(route);
-  const glow = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#f59a78', transparent: true, opacity: .25 })); glow.scale.setScalar(1.009); scene.add(glow);
+  const routeGroup = new THREE.Group(); scene.add(routeGroup);
   const markerGeometry = new THREE.SphereGeometry(.042, 16, 12);
   const endpointMaterial = new THREE.MeshBasicMaterial({ color: '#ffd99c' });
-  for (const t of [0, 1]) {
-    const dot = new THREE.Mesh(markerGeometry, endpointMaterial); dot.position.copy(routePoint(t, .02)); scene.add(dot);
-    const ring = new THREE.Mesh(new THREE.RingGeometry(.074, .088, 32), new THREE.MeshBasicMaterial({ color: '#ffe6b6', side: THREE.DoubleSide, transparent: true, opacity: .75 }));
-    ring.position.copy(routePoint(t, .023)); ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), ring.position.clone().normalize()); scene.add(ring);
+  function buildRoute() {
+    for (const child of [...routeGroup.children]) { routeGroup.remove(child); if (child.geometry !== markerGeometry) child.geometry.dispose(); if (child.material !== endpointMaterial) child.material.dispose(); }
+    const points = Array.from({ length: 100 }, (_, i) => routePoint(i / 99, .012));
+    routeGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#ffd7a0', transparent: true, opacity: .97 })));
+    const glow = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: '#f59a78', transparent: true, opacity: .25 })); glow.scale.setScalar(1.009); routeGroup.add(glow);
+    for (const t of [0, 1]) {
+      const dot = new THREE.Mesh(markerGeometry, endpointMaterial); dot.position.copy(routePoint(t, .02)); routeGroup.add(dot);
+      const ring = new THREE.Mesh(new THREE.RingGeometry(.074, .088, 32), new THREE.MeshBasicMaterial({ color: '#ffe6b6', side: THREE.DoubleSide, transparent: true, opacity: .75 }));
+      ring.position.copy(routePoint(t, .023)); ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), ring.position.clone().normalize()); routeGroup.add(ring);
+    }
   }
+  buildRoute();
   const plane = makeAirplane(); scene.add(plane);
   const memoryGroup = new THREE.Group(); scene.add(memoryGroup);
   let entries = [], selectedId = null, frame, lastWidth = 0, lastHeight = 0;
@@ -101,6 +116,16 @@ export function createGlobe(container, labelLayer) {
       const el = document.createElement('span'); el.className = 'map-memory-label'; el.textContent = entry.title; labelLayer.append(el); memoryLabels.set(entry.id, el);
     });
   }
+  function setRoute(route) {
+    START = route.from; END = route.to;
+    buildRoute();
+    aim = routePoint(.45).normalize();
+    labelEls[0].querySelector('strong').textContent = (route.from.name || 'Start').toUpperCase();
+    labelEls[1].querySelector('strong').textContent = (route.to.name || 'Ziel').toUpperCase();
+    setEntries(entries, selectedId);
+    focus();
+  }
+  function focus() { camera.position.copy(aim.clone().multiplyScalar(7.65)); controls.target.set(0, 0, 0); controls.update(); }
   function placeLabel(el, point) {
     const projected = point.clone().project(camera);
     const facing = point.clone().normalize().dot(camera.position.clone().normalize()) > .14;
@@ -137,8 +162,7 @@ export function createGlobe(container, labelLayer) {
   }
   frame = requestAnimationFrame(tick);
   return {
-    setEntries,
-    focus() { camera.position.copy(aim.clone().multiplyScalar(7.65)); controls.target.set(0, 0, 0); controls.update(); },
+    setEntries, setRoute, focus,
     destroy() { cancelAnimationFrame(frame); observer.disconnect(); controls.dispose(); map.dispose(); sphere.geometry.dispose(); sphere.material.dispose(); renderer.dispose(); renderer.domElement.remove(); }
   };
 }

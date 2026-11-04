@@ -1,0 +1,6 @@
+{
+  "appId": "de.atlasdererinnerungen.app",
+  "appName": "Atlas der Erinnerungen",
+  "webDir": "dist",
+  "ios": { "contentInset": "always", "backgroundColor": "#edf3f3" }
+}

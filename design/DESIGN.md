@@ -19,4 +19,10 @@ A private illustrated flight chart inside a daylight family album. The globe, no
 - Motion: globe plane follows route slowly; controls 160ms, toast 200ms. Reduced motion freezes plane. Avoid ornamental entrance reveals.
 
 ## Data
-IndexedDB holds all content; export/import is the portable backup. Do not add online persistence, tracking, or sharing by default. Any new UI variant requires editing this contract first.
+**Amended at the owner's request: accounts, cloud sync and sharing are now in scope.**
+- Without `VITE_SUPABASE_URL` the app runs exactly like the MVP: local only, IndexedDB, JSON backup.
+- With Supabase configured: email login, one or more *Atlanten* per member, members share an Atlas through an invite link. Moments and comments live in Postgres (EU region). Photos live in a **private** Storage bucket and are shown through short-lived signed URLs, never public URLs, because the photos show children.
+- IndexedDB stays the offline cache and the outbox for changes made without network.
+- Row Level Security on every table and on `storage.objects` is the only access control. The client holds the anon key only.
+- No tracking, no analytics, no third-party sign-in.
+- New UI (auth, atlas, members, settings, comments) reuses the dialog, field, button and toast contract above.

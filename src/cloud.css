@@ -1,0 +1,71 @@
+/* Accounts, atlases, photos, comments. Reuses the tokens from style.css (--ink, --muted, --coral, --line). */
+.masthead-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end}
+.sync-pill{border-radius:99px;background:#dfeee9;color:#2d5f58;font-size:11px;font-weight:700;padding:6px 11px;letter-spacing:.02em}
+.sync-pill.offline{background:#fbe6dc;color:#9a4630}
+
+dialog.sheet{width:min(560px,calc(100vw - 28px))}
+dialog.sheet form,dialog.sheet .sheet-body{padding:clamp(24px,4vw,42px);max-height:calc(100vh - 36px);overflow-y:auto}
+dialog.sheet::backdrop,.editor::backdrop{background:rgba(8,29,35,.55)}
+.form-notice{background:#e3f1ec;color:#245a52;border-radius:8px;padding:11px 13px;font-size:13px;line-height:1.5;margin:0 0 14px}
+.auth-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px}
+.auth-links .text-button{font-size:13px}
+
+.hub-section{border-top:1px solid var(--line);padding:20px 0 6px;margin-top:20px}
+.hub-section:first-of-type{border-top:0;margin-top:6px}
+.hub-section h3{font:600 13px 'DM Sans',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+.hub-list{list-style:none;margin:0 0 14px;padding:0;display:flex;flex-direction:column;gap:8px}
+.hub-row{width:100%;text-align:left;border:1px solid #c9d8d5;border-radius:9px;background:#fff;padding:12px 14px;display:flex;flex-direction:column;gap:3px;color:var(--ink);min-height:48px}
+.hub-row.current{border-color:var(--coral);box-shadow:0 0 0 1px var(--coral) inset}
+.hub-row small,.member-row small{color:var(--muted);font-size:12px}
+.member-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 2px}
+.member-row span{display:flex;flex-direction:column;gap:2px}
+.hub-actions{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.quiet{color:var(--muted);font-size:13px}
+.invite-box{background:#eef4f2;border-radius:10px;padding:14px;margin:6px 0 14px}
+.invite-box input{width:100%;border:1px solid #c9d8d5;border-radius:7px;padding:11px;font-size:13px;background:#fff;color:var(--ink);margin-bottom:8px}
+.invite-box small{color:var(--muted);font-size:12px}
+.inline-form{display:flex;gap:10px;align-items:flex-end}
+.inline-form .field{flex:1;margin-bottom:0}
+.text-button.danger,.danger{color:#ac5341}
+.custom-place{margin-top:10px}
+.custom-place[hidden]{display:none}
+.place-field{margin-bottom:6px}
+
+/* photos in the editor */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px;margin:12px 0}
+.photo-grid[hidden]{display:none}
+.thumb{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:#dfe9e6}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb button{position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(13,41,59,.78);color:#fff;display:grid;place-items:center;padding:0}
+.photo-missing{display:grid;place-items:center;text-align:center;color:var(--muted);font-size:11px;padding:8px;background:#e6eeec}
+
+/* photos in the diary */
+.memory-gallery{display:grid;gap:6px;margin-bottom:6px}
+.memory-gallery.count-2,.memory-gallery.count-4{grid-template-columns:1fr 1fr}
+.memory-gallery.count-3{grid-template-columns:1fr 1fr}
+.memory-gallery.count-3 .memory-photo:first-child{grid-column:1/-1}
+.memory-gallery .memory-photo{max-height:270px;height:100%}
+.memory-gallery.count-1 .memory-photo{max-height:320px}
+.memory-gallery .photo-missing{min-height:120px;border-radius:8px}
+.presentation-image{display:grid;gap:8px;align-content:center;min-height:0}
+.presentation-image.photos-2,.presentation-image.photos-4{grid-template-columns:1fr 1fr}
+.presentation-image.photos-3{grid-template-columns:1fr 1fr}
+.presentation-image.photos-3 .presentation-photo:first-child{grid-column:1/-1}
+.presentation-photo{width:100%;max-height:62vh;object-fit:cover;border-radius:10px;display:block}
+.presentation-author{display:block;margin-top:14px;opacity:.7}
+
+/* comments */
+.comments{border-top:1px solid var(--line);margin-top:22px;padding-top:16px}
+.comments h4{font:600 12px 'DM Sans',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.comment{margin:0 0 12px}
+.comment>div{display:flex;gap:10px;align-items:baseline}
+.comment small{color:var(--muted);font-size:11px}
+.comment p{margin:3px 0 0;font-size:14px;line-height:1.55}
+.comment-delete{margin-left:auto;border:0;background:none;color:var(--muted);padding:4px;display:grid;place-items:center}
+.comment-form{display:flex;gap:8px;margin-top:10px}
+.comment-form input{flex:1;min-width:0;border:1px solid #c9d8d5;border-radius:7px;background:#fff;padding:11px 12px;font-size:14px;color:var(--ink);min-height:44px}
+
+@media(max-width:760px){.inline-form{flex-direction:column;align-items:stretch}.masthead-actions{gap:8px}}
+
+/* iPhone notch / home indicator (PWA standalone and native shell) */
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}

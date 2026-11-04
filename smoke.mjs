@@ -1,8 +1,9 @@
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
+const engine = process.env.BROWSER === 'webkit' ? webkit : chromium;   // BROWSER=webkit: closest to iPhone Safari
 import { mkdir } from 'node:fs/promises';
 const base = 'http://127.0.0.1:4173/';
 await mkdir('screenshots', { recursive: true });
-const browser = await chromium.launch({ headless: true, args: ['--use-gl=angle', '--use-angle=swiftshader'] });
+const browser = await engine.launch({ headless: true, args: engine === chromium ? ['--use-gl=angle', '--use-angle=swiftshader'] : [] });
 const errors = [];
 const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
 const page = await context.newPage();
